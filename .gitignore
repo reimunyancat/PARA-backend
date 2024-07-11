@@ -1,0 +1,25 @@
+# Ignore local configuration files
+database.py
+.env
+
+# Ignore Python bytecode files
+__pycache__/
+
+# Ignore system-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore logs and other runtime data
+logs/
+*.log
+
+# Ignore IDE/project-specific files
+.vscode/
+.idea/
+
+# Ignore dependencies
+venv/
+*.pyc
+
+# Exclude sensitive information (adjust as necessary)
+config.ini
