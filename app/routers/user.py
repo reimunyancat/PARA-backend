@@ -9,7 +9,7 @@ class User(BaseModel):
     username: str
     password: str
 
-@router.post("/register")
+@router.post("/register")   
 def register_user(user: User):
     if users_collection.find_one({"username": user.username}):
         raise HTTPException(status_code=400, detail="Username already registered")
@@ -26,6 +26,14 @@ def login_user(user: User):
     else:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
+@router.post("/logout")
+def Logout_user(user: User):
+    existing_user = users_collection.find_one({"username": user.username, "password": user.password})
+    if existing_user:
+        return {"message": "Logout successful"}
+    else:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
 @router.delete("/delete/{user_id}")
 def delete_user(user_id: str):
     result = users_collection.delete_one({"_id": ObjectId(user_id)})
