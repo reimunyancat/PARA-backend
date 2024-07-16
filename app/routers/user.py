@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from bson import ObjectId
 from database import users_collection
 
-router = APIRouter()
+router = APIRouter(prefix="/user")
 
 class User(BaseModel):
     username: str
