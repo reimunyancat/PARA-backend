@@ -1,43 +1,44 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Header
 from pydantic import BaseModel
 from bson import ObjectId
 from database import users_collection
+from pymongo import MongoClient
+from fastapi.encoders import jsonable_encoder
+from dotenv import load_dotenv
+import os
 
 router = APIRouter(prefix="/user")
 
+CLIENT = os.getenv("CLIENT")
+
+client = MongoClient(CLIENT)
+db = client["para5"]
+print("db connected")
+
 class User(BaseModel):
-    username: str
-    password: str
+    id: str
+    passwd: str
 
-@router.post("/register")   
-def register_user(user: User):
-    if users_collection.find_one({"username": user.username}):
-        raise HTTPException(status_code=400, detail="Username already registered")
+@router.post("/signup")
+async def signup(user: User):
+    if db['users'].find_one({"id": user.id}):
+        raise HTTPException(status_code=400, detail="id already exists")
+
+    db['users'].insert_one(jsonable_encoder(user))
     
-    user_dict = user.dict()
-    users_collection.insert_one(user_dict)
-    return {"message": "User registered successfully"}
+    return {'status': 200, 'message': 'success'}
 
-@router.post("/login")
-def login_user(user: User):
-    existing_user = users_collection.find_one({"username": user.username, "password": user.password})
-    if existing_user:
-        return {"message": "Login successful"}
+@router.post("/signin")
+async def signin(user: User):
+    if db['users'].find_one({"id": user.id, "pw": user.passwd}):
+        return {'status': 200, 'message': 'success'}
     else:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        return {'status': 400, 'message': 'fail'}
 
-@router.post("/logout")
-def Logout_user(user: User):
-    existing_user = users_collection.find_one({"username": user.username, "password": user.password})
-    if existing_user:
-        return {"message": "Logout successful"}
+@router.delete("/delete")
+async def delete(user: User):
+    if db['users'].find_one({"id": user.id, "pw": user.passwd}):
+        db['users'].delete_one({"id": user.id, "pw": user.passwd})
+        return {'status': 200, 'message': 'success'}
     else:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-@router.delete("/delete/{user_id}")
-def delete_user(user_id: str):
-    result = users_collection.delete_one({"_id": ObjectId(user_id)})
-    if result.deleted_count == 1:
-        return {"message": "User deleted successfully"}
-    else:
-        raise HTTPException(status_code=404, detail="User not found")
+        return {'status': 400, 'message': 'fail'}
